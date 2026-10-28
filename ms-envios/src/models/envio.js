@@ -1,4 +1,5 @@
 const CAMPOS = new Set(['cliente_id', 'peso_kg', 'ciudad_destino', 'direccion_destino', 'estado']);
+const ESTADOS = ['registrado', 'en_transito', 'entregado'];
 
 function validarEnvio(datos) {
   if (!datos || typeof datos !== 'object' || Array.isArray(datos)) {
@@ -18,8 +19,8 @@ function validarEnvio(datos) {
     if (typeof datos[campo] !== 'string' || !datos[campo].trim()) errores.push(`${campo} es obligatorio y debe ser un texto no vacío`);
     else if (datos[campo].trim().length > maximo) errores.push(`${campo} no debe superar ${maximo} caracteres`);
   }
-  if (datos.estado !== undefined && datos.estado !== 'registrado') {
-    errores.push('Un envío nuevo debe tener estado registrado');
+  if (datos.estado !== undefined && !ESTADOS.includes(datos.estado)) {
+    errores.push(`estado debe ser uno de: ${ESTADOS.join(', ')}`);
   }
   return errores;
 }
@@ -27,6 +28,7 @@ function construirEnvio(datos) {
   return {
     cliente_id: datos.cliente_id, peso_kg: datos.peso_kg,
     ciudad_destino: datos.ciudad_destino.trim(), direccion_destino: datos.direccion_destino.trim(),
+    estado: datos.estado === undefined ? 'registrado' : datos.estado,
   };
 }
 module.exports = { validarEnvio, construirEnvio };

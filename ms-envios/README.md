@@ -11,7 +11,7 @@ Implementa listado, consulta por id y creación. Guarda sus datos en memoria y c
 
 Campos: `id, numero_guia, cliente_id, peso_kg, ciudad_destino, direccion_destino, estado, fecha_registro`.
 
-El servidor genera id, número de guía único y fecha ISO en UTC. El estado inicial es registrado.
+El servidor genera id, número de guía único y fecha ISO en UTC. El estado se puede indicar en el JSON; si se omite, se usa registrado.
 
 | Campo del cuerpo | Regla |
 |---|---|
@@ -19,7 +19,7 @@ El servidor genera id, número de guía único y fecha ISO en UTC. El estado ini
 | peso_kg | Obligatorio; número finito mayor que cero, en kilogramos |
 | ciudad_destino | Obligatorio; texto no vacío de hasta 100 caracteres |
 | direccion_destino | Obligatorio; texto no vacío de hasta 200 caracteres |
-| estado | Opcional; si se envía, debe ser registrado |
+| estado | Opcional; admite registrado, en_transito o entregado. Por defecto: registrado |
 
 Se recortan espacios en ciudad y dirección. Se rechazan arreglos, campos desconocidos y números enviados como texto. No se pueden imponer id, numero_guia ni fecha_registro.
 
@@ -42,7 +42,8 @@ Ejemplo del cuerpo de POST:
   "cliente_id": 1,
   "peso_kg": 2.5,
   "ciudad_destino": "Bogotá",
-  "direccion_destino": "Calle 10 # 20-30"
+  "direccion_destino": "Calle 10 # 20-30",
+  "estado": "en_transito"
 }
 ```
 

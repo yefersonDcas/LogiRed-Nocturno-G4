@@ -12,7 +12,7 @@ async function create(envio) {
   while (envios.some((e) => e.numero_guia === guia));
   const nuevo = {
     ...envio, id: siguienteId++, numero_guia: guia,
-    estado: 'registrado', fecha_registro: new Date().toISOString(),
+    fecha_registro: new Date().toISOString(),
   };
   envios.push(nuevo);
   return copiar(nuevo);
