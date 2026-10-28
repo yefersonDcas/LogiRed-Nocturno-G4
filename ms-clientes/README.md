@@ -32,5 +32,3 @@ npm ci
 Copy-Item .env.example .env
 npm start o npm run dev
 ```
-
-Si ya tiene .env, conserve ese archivo y ajuste PORT y HOST según su equipo.
