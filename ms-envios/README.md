@@ -6,7 +6,6 @@ Microservicio de paquetes registrados para entrega en LogiRed. Usa Node.js 22 o 
 
 Implementa listado, consulta por id y creación. Guarda sus datos en memoria y comienza con una lista vacía. Los datos se pierden al reiniciar. Puerto predeterminado: 3003.
 
-El diseño de la semana 1 está en [Modelo de dominio y contratos](../docs/semana-1.md).
 
 ## Entidad y validaciones
 
@@ -30,22 +29,11 @@ cliente_id es una referencia al cliente, no una copia de sus datos. En el Taller
 
 Desde esta carpeta:
 
-```powershell
+```CMD
 npm ci
 Copy-Item .env.example .env
-npm start
+npm start o npm run dev
 ```
-
-Si ya tiene .env, conserve ese archivo y ajuste PORT y HOST según su equipo. Para esta etapa no hace falta iniciar ms-clientes para usar ms-envios.
-
-## Endpoints implementados
-
-| Método | Ruta | Resultado |
-|---|---|---|
-| GET | /health | 200, estado del servicio |
-| GET | /envios | 200, arreglo de envíos |
-| GET | /envios/:id | 200, envío; 400 si el id es inválido; 404 si no existe |
-| POST | /envios | 201, envío y cabecera Location; 400 si los datos son inválidos |
 
 Ejemplo del cuerpo de POST:
 
@@ -59,7 +47,3 @@ Ejemplo del cuerpo de POST:
 ```
 
 El formato actual de numero_guia es LR- seguido de un identificador aleatorio único.
-
-## Etapas siguientes
-
-Modificar, eliminar y persistir en una base de datos corresponden al Taller 2. La validación REST de cliente_id, la composición del objeto cliente al consultar y los permisos corresponden al Taller 3. Las relaciones y la respuesta futura están documentadas como borrador de contrato para la semana 1.
