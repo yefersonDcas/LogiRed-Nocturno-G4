@@ -2,6 +2,7 @@ const express = require('express');
 const routes = require('./routes/clientes.routes');
 
 const app = express();
+app.set('json spaces', 2);
 app.use(express.json({ limit: '32kb' }));
 app.get('/health', (req, res) => res.json({ servicio: 'ms-clientes', estado: 'ok' }));
 app.use('/clientes', routes);
