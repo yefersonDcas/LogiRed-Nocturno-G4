@@ -1,20 +1,50 @@
 const { randomUUID } = require('node:crypto');
-// Taller 1: almacenamiento en memoria; solo se guarda la referencia cliente_id.
-const envios = [];
-let siguienteId = 1;
-const copiar = (envio) => envio ? { ...envio } : null;
+const pool = require('../db');
+const CAMPOS_FILTRO = ["estado","cliente_id","ciudad_destino"];
 
-async function findAll() { return envios.map(copiar); }
-async function findById(id) { return copiar(envios.find((e) => e.id === id)); }
-async function create(envio) {
-  let guia;
-  do { guia = `LR-${randomUUID().toUpperCase()}`; }
-  while (envios.some((e) => e.numero_guia === guia));
-  const nuevo = {
-    ...envio, id: siguienteId++, numero_guia: guia,
-    fecha_registro: new Date().toISOString(),
-  };
-  envios.push(nuevo);
-  return copiar(nuevo);
+function aEnvio(fila) {
+  return { ...fila, fecha_registro: new Date(fila.fecha_registro.replace(' ', 'T') + 'Z').toISOString() };
 }
-module.exports = { findAll, findById, create };
+
+async function findAll(filtros = {}) {
+  const condiciones = [];
+  const valores = [];
+  for (const campo of CAMPOS_FILTRO) {
+    if (filtros[campo] !== undefined) {
+      condiciones.push(campo + ' = ?');
+      valores.push(filtros[campo]);
+    }
+  }
+  if (filtros.ids !== undefined) {
+    if (!filtros.ids.length) return [];
+    condiciones.push('id IN (?)');
+    valores.push(filtros.ids);
+  }
+  const where = condiciones.length ? ' WHERE ' + condiciones.join(' AND ') : '';
+  const [filas] = await pool.query('SELECT * FROM envios' + where + ' ORDER BY id', valores);
+  return filas.map(aEnvio);
+}
+async function findById(id) {
+  const [filas] = await pool.query('SELECT * FROM envios WHERE id = ?', [id]);
+  return filas.length ? aEnvio(filas[0]) : null;
+}
+async function create(datos) {
+  const [resultado] = await pool.query(
+    'INSERT INTO envios (numero_guia, cliente_id, peso_kg, ciudad_destino, direccion_destino, estado, fecha_registro) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [`LR-${randomUUID().toUpperCase()}`, datos.cliente_id, datos.peso_kg, datos.ciudad_destino, datos.direccion_destino, datos.estado, new Date().toISOString().slice(0, 23).replace('T', ' ')]
+  );
+  return findById(resultado.insertId);
+}
+async function update(id, datos) {
+  await pool.query(
+    'UPDATE envios SET cliente_id = ?, peso_kg = ?, ciudad_destino = ?, direccion_destino = ?, estado = ? WHERE id = ?',
+    [datos.cliente_id, datos.peso_kg, datos.ciudad_destino, datos.direccion_destino, datos.estado, id]
+  );
+  // Una actualización con los mismos valores también debe devolver el registro.
+  return findById(id);
+}
+async function remove(id) {
+  const [resultado] = await pool.query('DELETE FROM envios WHERE id = ?', [id]);
+  return resultado.affectedRows > 0;
+}
+module.exports = { findAll, findById, create, update, remove };

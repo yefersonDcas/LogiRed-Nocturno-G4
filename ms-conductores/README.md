@@ -1,49 +1,62 @@
-# ms-conductores · Taller 1
+# ms-conductores · MySQL
 
-Gestiona conductores de la flota de LogiRed. Usa Node.js 22 o superior y Express, con controlador, servicio, modelo y repositorio.
+Microservicio de conductores de LogiRed, organizado en rutas, controlador, servicio, modelo y repositorio. Usa Node.js 22 o superior, Express y mysql2, con una base propia: conductores_db.
 
-## Alcance actual
+## Configuración y arranque
 
-Listado, consulta por id y creación, con almacenamiento propio en memoria. Los datos se pierden al reiniciar. Incluye tres conductores de ejemplo; el siguiente id es 4.
+1. Inicie MySQL en XAMPP, en el puerto 3306.
+2. Instale las dependencias desde esta carpeta con npm ci.
+3. Si todavía no existe .env, copie .env.example como .env y complete DB_HOST, DB_PORT, DB_NAME, DB_USER y DB_PASSWORD.
+4. La cuenta conductores_user debe existir en MySQL con la misma contraseña del .env y permisos SELECT, INSERT, UPDATE y DELETE sobre conductores_db.*. Escribir la cuenta en .env no la crea en el servidor.
+5. Importe db/schema.sql con una cuenta administradora. El archivo crea la base y la tabla sin borrar datos. Incluye tres registros iniciales y permite volver a ejecutarlo.
 
-## Entidad y validaciones
+En la consola de MySQL, el comando para importar desde este equipo es:
 
-Campos: id, nombre, cedula, categoria_licencia, telefono y sede. El servidor asigna el id. Todos los campos del cuerpo son obligatorios.
+```sql
+SOURCE C:/Users/USER/OneDrive/Escritorio/LogiRed-Nocturno-G4/ms-conductores/db/schema.sql;
+```
 
-| Campo | Regla |
-|---|---|
-| nombre | Texto no vacío de hasta 150 caracteres |
-| cedula | Texto de hasta 20 dígitos, no formado solo por ceros; conserva ceros iniciales y debe ser único |
-| categoria_licencia | Catálogo del proyecto: A1, A2, B1, B2, B3, C1, C2 o C3; se guarda en mayúsculas |
-| telefono | Texto de hasta 32 caracteres con entre 7 y 15 dígitos; admite + inicial, espacios, paréntesis y guiones |
-| sede | Cali, Medellín o Bogotá; admite diferencias de mayúsculas y tildes, y se guarda con el nombre canónico |
-
-Se recortan los espacios sobrantes. El teléfono se guarda sin espacios, paréntesis ni guiones. Se rechazan arreglos, campos desconocidos y números enviados en lugar de texto para cedula o telefono.
-
-Las validaciones comprueban el formato del registro; no verifican autenticidad, vigencia de la licencia ni documentos externos.
-
-## Ejecutar
-
-Desde esta carpeta, instale las dependencias y prepare .env si todavía no existe:
+Desde la carpeta del servicio:
 
 ```powershell
-npm ci
-Copy-Item .env.example .env
 npm run dev
 ```
 
-Puerto predeterminado: 3004. Si ya existe .env, conserve su contenido y ajuste PORT a 3004. HOST predeterminado: 127.0.0.1.
+También puede usar npm start. Puerto HTTP predeterminado: 3004. Al iniciar se comprueba la conexión a la base; si falla, la consola indica el código y el servidor no comienza a escuchar.
 
-## Endpoints
+Los datos se guardan en MySQL y permanecen después de reiniciar. Los registros creados anteriormente en memoria no se recuperan automáticamente. Cada servicio accede únicamente a su base.
 
-| Método | Ruta | Respuesta |
+## Operaciones disponibles
+
+| Método | Ruta | Resultado |
 |---|---|---|
-| GET | /health | 200, estado del servicio |
-| GET | /conductores | 200, arreglo de conductores |
-| GET | /conductores/:id | 200, conductor; 400 si el id es inválido; 404 si no existe |
-| POST | /conductores | 201, conductor y cabecera Location; 400 si los datos son inválidos; 409 si la cédula ya existe |
+| GET | /health | 200, identifica el servicio; no consulta la base |
+| GET | /conductores | 200, listado ordenado por id |
+| GET | /conductores/:id | 200, registro; 404 si no existe |
+| POST | /conductores | 201, registro creado y cabecera Location |
+| PUT | /conductores/:id | 200, registro actualizado; 404 si no existe |
+| DELETE | /conductores/:id | 204 sin cuerpo; 404 si no existe |
 
-Crear un conductor: POST http://localhost:3004/conductores
+POST y PUT reciben los campos editables completos. Se rechazan campos desconocidos, arreglos y campos obligatorios vacíos. Un id, filtro o cuerpo inválido devuelve 400. Un duplicado devuelve 409. PUT con los mismos valores devuelve 200.
+
+## Reglas y filtros
+
+Campos obligatorios: nombre (máximo 150), cedula (20), categoria_licencia (2), telefono (32) y sede (20).
+
+La cédula es un texto numérico único, conserva ceros iniciales y no puede estar formada solo por ceros. El teléfono admite entre 7 y 15 dígitos y separadores habituales.
+
+Catálogo de categoria_licencia: A1, A2, B1, B2, B3, C1, C2 y C3; se guarda en mayúsculas. Sedes: Cali, Medellín y Bogotá; se aceptan diferencias de mayúsculas y tildes y se guarda el nombre canónico. Estas comprobaciones validan el formato del registro.
+
+Ejemplos de filtros:
+- GET /conductores?sede=Cali
+- GET /conductores?categoria_licencia=C2
+- GET /conductores?sede=Medellín&categoria_licencia=C3
+
+Los filtros se pueden combinar. GET /conductores?ids=1,3,8 devuelve los ids existentes en un lote, elimina repeticiones y omite ids inexistentes. Un lote sin coincidencias devuelve []. Los ids deben ser enteros positivos en formato decimal.
+
+## Ejemplo de creación
+
+POST http://localhost:3004/conductores
 
 ```json
 {
@@ -55,19 +68,14 @@ Crear un conductor: POST http://localhost:3004/conductores
 }
 ```
 
-Consultar el listado: GET http://localhost:3004/conductores
+Para modificar, use PUT http://localhost:3004/conductores/4 con el cuerpo completo del registro. Para consultar, use GET con el id devuelto por POST.
 
-Consultar un registro: GET http://localhost:3004/conductores/4
+## Archivos principales
 
-## Archivos
-
-| Archivo | Función |
-|---|---|
-| src/index.js | Arranca el servidor |
-| src/app.js | Configura JSON, rutas y respuestas de error |
-| src/routes/conductores.routes.js | Asocia las peticiones a cada operación |
-| src/controllers/conductores.controller.js | Recibe y responde las peticiones; valida el id |
-| src/services/conductores.service.js | Coordina las validaciones y operaciones |
-| src/models/conductor.js | Valida y prepara los datos |
-| src/repositories/conductores.repository.js | Guarda y consulta los conductores en memoria |
-| src/utils/http-error.js | Representa errores con código, mensaje y detalles |
+- src/db.js: conexión a la base propia.
+- db/schema.sql: creación de base, tabla, restricciones y datos iniciales.
+- src/routes/conductores.routes.js: direcciones y métodos HTTP.
+- src/controllers/conductores.controller.js: lectura de ids y filtros, y respuestas HTTP.
+- src/services/conductores.service.js: validaciones y reglas.
+- src/models/conductor.js: campos y normalización.
+- src/repositories/conductores.repository.js: consultas SQL con parámetros.

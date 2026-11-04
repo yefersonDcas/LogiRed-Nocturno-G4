@@ -10,7 +10,7 @@ const router = Router();
 router.get('/', controller.listar);      // listar todos los usuarios
 router.get('/:id', controller.obtener);  // obtener un usuario por id
 router.post('/', controller.crear);      // crear un usuario
-
-// Taller 2: agregar PUT /:id (actualizar) y DELETE /:id (eliminar)
+router.put('/:id', controller.actualizar); // actualizar un usuario
+router.delete('/:id', controller.eliminar); // eliminar un usuario
 
 module.exports = router;

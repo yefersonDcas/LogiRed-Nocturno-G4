@@ -1,23 +1,45 @@
-// Taller 1: almacenamiento propio en memoria; se reinicia al detener el proceso.
-const conductores = [
-  { id: 1, nombre: 'Carlos Ramírez', cedula: '0012345678', categoria_licencia: 'C2', telefono: '+573001234567', sede: 'Cali' },
-  { id: 2, nombre: 'Diana López', cedula: '0098765432', categoria_licencia: 'C3', telefono: '+573102345678', sede: 'Medellín' },
-  { id: 3, nombre: 'Jorge Pérez', cedula: '0011223344', categoria_licencia: 'C1', telefono: '+573203456789', sede: 'Bogotá' },
-];
-let siguienteId = 4;
-const copiar = (conductor) => conductor ? { ...conductor } : null;
+const pool = require('../db');
+const CAMPOS_FILTRO = ["sede","categoria_licencia"];
 
-async function findAll() { return conductores.map(copiar); }
-async function findById(id) { return copiar(conductores.find((c) => c.id === id)); }
-async function create(conductor) {
-  // Comprobar y escribir sin esperas evita duplicados en este proceso.
-  if (conductores.some((c) => c.cedula === conductor.cedula)) {
-    const error = new Error('Ya existe un conductor con esa cédula');
-    error.code = 'CONDUCTOR_DUPLICADO';
-    throw error;
+async function findAll(filtros = {}) {
+  const condiciones = [];
+  const valores = [];
+  for (const campo of CAMPOS_FILTRO) {
+    if (filtros[campo] !== undefined) {
+      condiciones.push(campo + ' = ?');
+      valores.push(filtros[campo]);
+    }
   }
-  const nuevo = { ...conductor, id: siguienteId++ };
-  conductores.push(nuevo);
-  return copiar(nuevo);
+  if (filtros.ids !== undefined) {
+    if (!filtros.ids.length) return [];
+    condiciones.push('id IN (?)');
+    valores.push(filtros.ids);
+  }
+  const where = condiciones.length ? ' WHERE ' + condiciones.join(' AND ') : '';
+  const [filas] = await pool.query('SELECT * FROM conductores' + where + ' ORDER BY id', valores);
+  return filas;
 }
-module.exports = { findAll, findById, create };
+async function findById(id) {
+  const [filas] = await pool.query('SELECT * FROM conductores WHERE id = ?', [id]);
+  return filas.length ? filas[0] : null;
+}
+async function create(datos) {
+  const [resultado] = await pool.query(
+    'INSERT INTO conductores (nombre, cedula, categoria_licencia, telefono, sede) VALUES (?, ?, ?, ?, ?)',
+    [datos.nombre, datos.cedula, datos.categoria_licencia, datos.telefono, datos.sede]
+  );
+  return findById(resultado.insertId);
+}
+async function update(id, datos) {
+  await pool.query(
+    'UPDATE conductores SET nombre = ?, cedula = ?, categoria_licencia = ?, telefono = ?, sede = ? WHERE id = ?',
+    [datos.nombre, datos.cedula, datos.categoria_licencia, datos.telefono, datos.sede, id]
+  );
+  // Una actualización con los mismos valores también debe devolver el registro.
+  return findById(id);
+}
+async function remove(id) {
+  const [resultado] = await pool.query('DELETE FROM conductores WHERE id = ?', [id]);
+  return resultado.affectedRows > 0;
+}
+module.exports = { findAll, findById, create, update, remove };

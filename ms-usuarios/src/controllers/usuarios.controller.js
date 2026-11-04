@@ -12,9 +12,15 @@ function leerId(req) {
   return id;
 }
 
-// GET /usuarios
 async function listar(req, res) {
-  const usuarios = await service.listar();
+  const filtros = {rol: req.query.rol};
+  if (req.query.ids) {
+    filtros.ids = String(req.query.ids).split(',').map(Number);
+    if (filtros.ids.some((id) => !Number.isInteger(id) || id <= 0)) {
+      throw new HttpError(400, 'Los ids deben ser enteros positivos separados por comas');
+    }
+  }
+  const usuarios = await service.listar(filtros);
   res.status(200).json(usuarios);
 }
 
@@ -30,4 +36,14 @@ async function crear(req, res) {
   res.status(201).location(`${req.baseUrl}/${nuevo.id}`).json(nuevo);
 }
 
-module.exports = { listar, obtener, crear };
+async function actualizar(req, res){
+  const actualizado = await service.actualizar(leerId(req), req.body);
+  res.status(200).json(actualizado);
+}
+
+async function eliminar(req, res){
+  await service.eliminar(leerId(req));
+  res.status(204).end();
+}
+
+module.exports = { listar, obtener, crear, actualizar, eliminar };

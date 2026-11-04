@@ -6,29 +6,63 @@
 // Todas las funciones son async (devuelven promesas) para que el cambio
 // a una base de datos real no obligue a modificar la capa de servicio.
 // =====================================================================
-const usuarios = [
-  { id: 1, nombre: 'Administrador General', email: 'admin@empresa.com', rol: 'administrador', activo: true },
-  { id: 2, nombre: 'Laura Gómez', email: 'laura.gomez@empresa.com', rol: 'administrador', activo: true },
-  { id: 3, nombre: 'Andrés Castillo', email: 'andres.castillo@empresa.com', rol: 'administrador', activo: false },
-];
-let siguienteId = 4;
 
-async function findAll() {
-  return usuarios;
+
+const pool = require('../db');
+
+function aUsuario(fila) { 
+return { ...fila, activo: Boolean(fila.activo) };
+}
+
+async function findAll(filtros ={}) {
+  let sql = 'SELECT * FROM usuarios';
+  const condiciones = [];
+  const valores = [];
+
+  if (filtros.rol) {
+    condiciones.push('rol = ?');
+    valores.push(filtros.rol);
+  }
+
+  if (filtros.ids) {
+    condiciones.push('id IN (?)');
+    valores.push(filtros.ids);
+  }
+
+  if (condiciones.length > 0) sql += ' WHERE ' + condiciones.join(' AND ');
+  const [filas] = await pool.query(sql + ' ORDER BY id', valores);
+  return filas.map(aUsuario);
 }
 
 async function findById(id) {
-  return usuarios.find((u) => u.id === id) || null;
+  const [filas] = await pool.query('SELECT * FROM usuarios WHERE id = ?', [id]);
+  return filas.length > 0 ? aUsuario(filas[0]) : null;
 }
 
 async function findByEmail(email) {
-  return usuarios.find((u) => u.email === email) || null;
+  const [filas] = await pool.query('SELECT * FROM usuarios WHERE email = ?', [email]);
+  return filas.length > 0 ? aUsuario(filas[0]) : null;
 }
 
 async function create(usuario) {
-  const nuevo = { id: siguienteId++, ...usuario };
-  usuarios.push(nuevo);
-  return nuevo;
+  const [resultado] = await pool.query(
+    'INSERT INTO usuarios (nombre, email, rol, activo) VALUES (?, ?, ?, ?)', 
+    [usuario.nombre, usuario.email, usuario.rol, usuario.activo]);
+  return findById(resultado.insertId);
 }
 
-module.exports = { findAll, findById, findByEmail, create };
+async function update(id, usuario) {
+  const [resultado] = await pool.query(
+    'UPDATE usuarios SET nombre = ?, email = ?, rol = ?, activo = ? WHERE id = ?',
+    [usuario.nombre, usuario.email, usuario.rol, usuario.activo, id]
+  );
+  if (resultado.affectedRows === 0) return null;
+  return findById(id);
+}
+
+async function remove(id) {
+  const [resultado] = await pool.query('DELETE FROM usuarios WHERE id = ?', [id]);
+  return resultado.affectedRows > 0;
+}
+
+module.exports = { findAll, findById, findByEmail, create, update, remove };

@@ -1,24 +1,45 @@
-// Taller 1: almacenamiento propio en memoria; se reinicia al detener el proceso.
-const clientes = [
-  { id: 1, nombre: 'Comercializadora del Valle', documento: '900123456-7', telefono: '+573001234567', email: 'contacto@valle.example', ciudad: 'Cali' },
-  { id: 2, nombre: 'Laura Gómez', documento: '0012345678', telefono: '+573102345678', email: 'laura@example.com', ciudad: 'Medellín' },
-  { id: 3, nombre: 'Andrés Castillo', documento: '0098765432', telefono: '+573203456789', email: 'andres@example.com', ciudad: 'Bogotá' },
-];
-let siguienteId = 4;
-const copiar = (cliente) => cliente ? { ...cliente } : null;
+const pool = require('../db');
+const CAMPOS_FILTRO = ["ciudad"];
 
-async function findAll() { return clientes.map(copiar); }
-async function findById(id) { return copiar(clientes.find((c) => c.id === id)); }
-async function create(cliente) {
-  for (const campo of ['documento', 'email']) {
-    if (clientes.some((c) => c[campo] === cliente[campo])) {
-      const error = new Error(`Ya existe un cliente con ese ${campo}`);
-      error.code = 'CLIENTE_DUPLICADO';
-      throw error;
+async function findAll(filtros = {}) {
+  const condiciones = [];
+  const valores = [];
+  for (const campo of CAMPOS_FILTRO) {
+    if (filtros[campo] !== undefined) {
+      condiciones.push(campo + ' = ?');
+      valores.push(filtros[campo]);
     }
   }
-  const nuevo = { ...cliente, id: siguienteId++ };
-  clientes.push(nuevo);
-  return copiar(nuevo);
+  if (filtros.ids !== undefined) {
+    if (!filtros.ids.length) return [];
+    condiciones.push('id IN (?)');
+    valores.push(filtros.ids);
+  }
+  const where = condiciones.length ? ' WHERE ' + condiciones.join(' AND ') : '';
+  const [filas] = await pool.query('SELECT * FROM clientes' + where + ' ORDER BY id', valores);
+  return filas;
 }
-module.exports = { findAll, findById, create };
+async function findById(id) {
+  const [filas] = await pool.query('SELECT * FROM clientes WHERE id = ?', [id]);
+  return filas.length ? filas[0] : null;
+}
+async function create(datos) {
+  const [resultado] = await pool.query(
+    'INSERT INTO clientes (nombre, documento, telefono, email, ciudad) VALUES (?, ?, ?, ?, ?)',
+    [datos.nombre, datos.documento, datos.telefono, datos.email, datos.ciudad]
+  );
+  return findById(resultado.insertId);
+}
+async function update(id, datos) {
+  await pool.query(
+    'UPDATE clientes SET nombre = ?, documento = ?, telefono = ?, email = ?, ciudad = ? WHERE id = ?',
+    [datos.nombre, datos.documento, datos.telefono, datos.email, datos.ciudad, id]
+  );
+  // Una actualización con los mismos valores también debe devolver el registro.
+  return findById(id);
+}
+async function remove(id) {
+  const [resultado] = await pool.query('DELETE FROM clientes WHERE id = ?', [id]);
+  return resultado.affectedRows > 0;
+}
+module.exports = { findAll, findById, create, update, remove };
