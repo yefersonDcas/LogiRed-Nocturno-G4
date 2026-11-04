@@ -11,10 +11,11 @@ CREATE TABLE IF NOT EXISTS envios (
   direccion_destino VARCHAR(200)        NOT NULL,
   estado            VARCHAR(20)         NOT NULL DEFAULT 'registrado',
   fecha_registro    DATETIME(3)         NOT NULL,
-  CONSTRAINT uq_envios_numero_guia UNIQUE (numero_guia),
-  CONSTRAINT ck_envios_cliente_id CHECK (cliente_id > 0 AND cliente_id <= 9007199254740991),
-  CONSTRAINT ck_envios_peso CHECK (peso_kg > 0),
-  CONSTRAINT ck_envios_estado CHECK (estado IN ('registrado', 'en_transito', 'entregado'))
+
+  CONSTRAINT uq_envios_numero_guia      UNIQUE (numero_guia),
+  CONSTRAINT ck_envios_cliente_id       CHECK (cliente_id > 0 AND cliente_id <= 9007199254740991),
+  CONSTRAINT ck_envios_peso             CHECK (peso_kg > 0),
+  CONSTRAINT ck_envios_estado           CHECK (estado IN ('registrado', 'en_transito', 'entregado'))
 );
 -- cliente_id es una referencia externa; no tiene llave foránea hacia otra base.
 -- La aplicación genera la guía y guarda fecha_registro en UTC.
