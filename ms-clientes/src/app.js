@@ -3,6 +3,10 @@ const routes = require('./routes/clientes.routes');
 
 const app = express();
 app.set('json spaces', 2);
+app.use((req, res, next) => {
+  console.log(`${new Date().toLocaleTimeString()} ${req.method} ${req.originalUrl}`);
+  next();
+});
 app.use(express.json({ limit: '32kb' }));
 app.get('/health', (req, res) => res.json({ servicio: 'ms-clientes', estado: 'ok' }));
 app.use('/clientes', routes);
