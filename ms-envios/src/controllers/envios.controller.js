@@ -37,11 +37,12 @@ async function obtener(req, res) {
   res.status(200).json(await service.obtener(leerId(req.params.id)));
 }
 async function crear(req, res) {
-  const nuevo = await service.crear(req.body);
+  const nuevo = await service.crear(req.body, req.headers.authorization);
   res.status(201).location(`${req.baseUrl}/${nuevo.id}`).json(nuevo);
 }
 async function actualizar(req, res) {
-  res.status(200).json(await service.actualizar(leerId(req.params.id), req.body));
+  const actualizado = await service.actualizar(leerId(req.params.id), req.body, req.headers.authorization);
+  res.status(200).json(actualizado);
 }
 async function eliminar(req, res) {
   await service.eliminar(leerId(req.params.id));
