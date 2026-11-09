@@ -46,4 +46,11 @@ async function eliminar(req, res){
   res.status(204).end();
 }
 
-module.exports = { listar, obtener, crear, actualizar, eliminar };
+async function login(req, res) {
+  res.status(200).json(await service.login(req.body));
+}
+
+async function miPerfil(req, res) {
+  res.status(200).json(await service.obtener(req.usuario.id));
+}
+module.exports = { listar, obtener, crear, actualizar, eliminar, login, miPerfil };

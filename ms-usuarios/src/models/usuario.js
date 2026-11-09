@@ -36,17 +36,22 @@ function validarUsuario(datos) {
   if (datos.activo !== undefined && typeof datos.activo !== 'boolean') {
     errores.push('activo debe ser true o false');
   }
-  return errores;
-}
+  const hayPassword = datos.password !== undefined;
+  if ((passwordObligatoria || hayPassword) &&
+    (typeof datos.password !== 'string' || datos.password.length < LONGITUD_MINIMA_PASSWORD)) {
+    errores.push(`password es obligatorio y debe tener al menos ${LONGITUD_MINIMA_PASSWORD} caracteres`);
+    }
+    return errores;
+  }
 
-// Construye un usuario "limpio" solo con los campos permitidos
-function construirUsuario(datos) {
-  return {
-    nombre: datos.nombre.trim(),
-    email: datos.email.trim().toLowerCase(),
-    rol: datos.rol,
-    activo: datos.activo === undefined ? true : datos.activo,
-  };
-}
+  // Construye un usuario "limpio" solo con los campos permitidos
+  function construirUsuario(datos) {
+    return {
+      nombre: datos.nombre.trim(),
+      email: datos.email.trim().toLowerCase(),
+      rol: datos.rol,
+      activo: datos.activo === undefined ? true : datos.activo,
+    };
+  }
 
-module.exports = { validarUsuario, construirUsuario };
+  module.exports = { validarUsuario, construirUsuario };

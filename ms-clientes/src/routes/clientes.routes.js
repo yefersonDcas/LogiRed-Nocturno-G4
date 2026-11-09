@@ -1,10 +1,15 @@
 const { Router } = require('express');
 const controller = require('../controllers/clientes.controller');
+const { verificarToken, requiereRol } = require('../middlewares/auth');
 
 const router = Router();
-router.get('/', controller.listar);
-router.get('/:id', controller.obtener);
-router.post('/', controller.crear);
-router.put('/:id', controller.actualizar);
-router.delete('/:id', controller.eliminar);
+const accesoClientes = requiereRol('administrador', 'despacho');
+
+router.use(verificarToken);
+router.get('/', accesoClientes, controller.listar);
+router.get('/:id', accesoClientes, controller.obtener);
+router.post('/', accesoClientes, controller.crear);
+router.put('/:id', accesoClientes, controller.actualizar);
+router.delete('/:id', requiereRol('administrador'), controller.eliminar);
+
 module.exports = router;
