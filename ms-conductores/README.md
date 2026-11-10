@@ -31,7 +31,7 @@ mysql> SOURCE db/schema.sql;
 3. Copiar `.env.example` como `.env` y poner en `DB_PASSWORD` la misma clave del paso 1.
    El archivo `.env` **no** se sube al repositorio.
 
-4. Instalar dependencias y arrancar:
+4. Instalar dependencias (express, mysql2 y jsonwebtoken) y arrancar:
 
 ```powershell
 npm install
@@ -52,6 +52,7 @@ npm run dev
 | DB_NAME | conductores_db | Base de datos propia del servicio |
 | DB_USER | conductores_user | Usuario de MySQL solo para esta base |
 | DB_PASSWORD | — | Clave de ese usuario (solo en `.env`) |
+| JWT_SECRET | — | Clave para verificar los tokens: la **misma** de ms-usuarios y de todo el grupo (solo en `.env`) |
 
 ## Representación de un conductor
 
@@ -92,14 +93,14 @@ dentro de su catálogo (si no, **400**).
 
 | Operación | Método | URI | Cuerpo | Respuesta exitosa | Errores posibles |
 |---|---|---|---|---|---|
-| Salud | GET | /health | — | 200 `{"servicio":"ms-conductores","estado":"ok"}` | — |
-| Listar | GET | /conductores | — | 200 + arreglo | — |
-| Filtrar | GET | /conductores?sede=Cali · ?categoria_licencia=C2 | — | 200 + arreglo filtrado | 400 filtro inválido |
-| Consultar por lotes | GET | /conductores?ids=1,3,8 | — | 200 + arreglo con esos registros | 400 ids inválidos |
-| Obtener | GET | /conductores/:id | — | 200 + objeto | 400 id inválido · 404 |
-| Crear | POST | /conductores | JSON sin id | 201 + objeto + cabecera Location | 400 · 409 |
-| Actualizar | PUT | /conductores/:id | JSON completo sin id | 200 + objeto actualizado | 400 · 404 · 409 |
-| Eliminar | DELETE | /conductores/:id | — | 204 sin cuerpo | 400 · 404 |
+| Salud | GET | /health | — | 200 `{"servicio":"ms-conductores","estado":"ok"}` | — (pública) |
+| Listar | GET | /conductores | — | 200 + arreglo | 401 |
+| Filtrar | GET | /conductores?sede=Cali · ?categoria_licencia=C2 | — | 200 + arreglo filtrado | 400 filtro inválido · 401 |
+| Consultar por lotes | GET | /conductores?ids=1,3,8 | — | 200 + arreglo con esos registros | 400 ids inválidos · 401 |
+| Obtener | GET | /conductores/:id | — | 200 + objeto | 400 id inválido · 401 · 404 |
+| Crear | POST | /conductores | JSON sin id | 201 + objeto + cabecera Location | 400 · 401 · 403 · 409 |
+| Actualizar | PUT | /conductores/:id | JSON completo sin id | 200 + objeto actualizado | 400 · 401 · 403 · 404 · 409 |
+| Eliminar | DELETE | /conductores/:id | — | 204 sin cuerpo | 400 · 401 · 403 · 404 |
 
 - Los filtros se pueden combinar: `GET /conductores?sede=Medellín&categoria_licencia=C3`.
 - `?ids=` devuelve los registros existentes de la lista, sin repetidos y ordenados por id; los ids que no
@@ -163,6 +164,31 @@ Todos los errores responden con el mismo formato; `detalles` aparece solo en los
 }
 ```
 
+## Seguridad
+
+Todas las rutas de `/conductores` exigen un **token JWT** en la cabecera
+`Authorization: Bearer <token>`. El token lo entrega ms-usuarios al iniciar sesión
+(`POST /usuarios/login`) y lleva el `id`, el `nombre` y el `rol` del usuario.
+
+ms-conductores **no le pregunta nada a ms-usuarios**: verifica la firma del token con la clave
+`JWT_SECRET` de su `.env`, que es la misma en todos los microservicios del grupo. Si alguien modifica
+el token (por ejemplo, para cambiarse el rol), la firma deja de coincidir y se rechaza.
+
+El middleware `src/middlewares/auth.js` es el mismo archivo de ms-usuarios, copiado sin cambios:
+
+- `verificarToken`: sin token, con un token inventado o vencido → **401**. Si es válido, deja los datos en `req.usuario`.
+- `requiereRol(...)`: si el rol del token no está en la lista → **403**.
+
+Permisos sobre conductores (tabla de roles de LogiRed):
+
+| Rol | Consultar (GET) | Crear, modificar y eliminar (POST, PUT, DELETE) |
+|---|---|---|
+| administrador | Sí | Sí |
+| flota | Sí | Sí |
+| despacho | Sí | No (403) |
+
+`GET /health` queda pública: solo indica que el servicio está vivo y no devuelve datos.
+
 ## Relaciones
 
 ms-conductores **no guarda referencias** a otros microservicios: es de los **consultados**.
@@ -177,14 +203,24 @@ Ningún otro servicio lee la base `conductores_db`: los datos de los conductores
 ## Pruebas
 
 La colección de Postman está en `docs/ms-conductores.postman_collection.json` (Import → File).
-Trae los casos 1 a 13 del Taller 2 con la verificación del código esperado. Se ejecutan en orden
-(Run collection): el caso 07 guarda el id creado, que usan los casos 10, 12 y 13.
+Trae los casos 1 a 18 del Taller 2 con la verificación del código esperado, en tres carpetas:
+
+1. **00 Preparación**: inicia sesión en ms-usuarios (puerto 3001) como administrador, crea una sola vez
+   un usuario de despacho y uno de flota, y guarda el token de cada uno. Requiere ms-usuarios corriendo
+   con la misma `JWT_SECRET`.
+2. **CRUD (1 a 13)**: se ejecutan con el token del administrador. El caso 07 guarda el id creado, que usan los casos 10, 12 y 13.
+3. **Seguridad (14 a 18)**: sin token (401), token inventado (401), despacho consulta (200),
+   despacho intenta crear (403) y flota crea (201).
+
+Se ejecuta todo en orden con *Run collection*. Las contraseñas de prueba están en las variables
+de la colección (`passwordAdmin`, `passwordPruebas`).
 
 ## Archivos principales
 
 | Archivo | Capa | Su trabajo |
 |---|---|---|
-| src/routes/conductores.routes.js | Presentación: rutas | Qué función atiende cada método + URI |
+| src/routes/conductores.routes.js | Presentación: rutas | Qué función atiende cada método + URI y qué roles pueden usarla |
+| src/middlewares/auth.js | Seguridad | Verificar el token (401) y el rol (403) antes de llegar al controlador |
 | src/controllers/conductores.controller.js | Presentación: controlador | Leer id y filtros de la petición y armar la respuesta (código + JSON) |
 | src/services/conductores.service.js | Lógica de negocio | Validar, aplicar la regla de cédula única y decidir 404 / 409 |
 | src/models/conductor.js | Modelo | Campos, catálogos y normalización |
