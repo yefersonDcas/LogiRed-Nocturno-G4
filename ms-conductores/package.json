@@ -1,7 +1,7 @@
 {
   "name": "ms-conductores",
   "version": "1.0.0",
-  "description": "Microservicio de conductores de LogiRed - Taller 1",
+  "description": "Microservicio de conductores de LogiRed - Redes y Servicios Multimedia, Módulo 3",
   "main": "src/index.js",
   "scripts": {
     "start": "node --env-file-if-exists=.env src/index.js",
