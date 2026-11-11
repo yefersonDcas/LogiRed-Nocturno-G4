@@ -31,10 +31,12 @@ function leerFiltros(query) {
   return filtros;
 }
 async function listar(req, res) {
-  res.status(200).json(await service.listar(leerFiltros(req.query)));
+  const envios = await service.listar(leerFiltros(req.query), req.headers.authorization);
+  res.status(200).json(envios);
 }
 async function obtener(req, res) {
-  res.status(200).json(await service.obtener(leerId(req.params.id)));
+  const envio = await service.obtener(leerId(req.params.id), req.headers.authorization);
+  res.status(200).json(envio);
 }
 async function crear(req, res) {
   const nuevo = await service.crear(req.body, req.headers.authorization);

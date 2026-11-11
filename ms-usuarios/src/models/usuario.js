@@ -16,9 +16,10 @@ function rolesValidos() {
 }
 
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const LONGITUD_MINIMA_PASSWORD = 8;
 
 // Devuelve una lista de errores de validación (vacía si todo está bien)
-function validarUsuario(datos) {
+function validarUsuario(datos, { passwordObligatoria = false } = {}) {
   const errores = [];
   if (!datos || typeof datos !== 'object') {
     return ['Se esperaba un objeto JSON con los datos del usuario'];
