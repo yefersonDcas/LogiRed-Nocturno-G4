@@ -192,33 +192,54 @@ Permisos sobre conductores (tabla de roles de LogiRed):
 ## Relaciones
 
 ms-conductores **no guarda referencias** a otros microservicios: es de los **consultados**.
-La entidad Vehículos guarda `conductor_id` y consulta a este servicio por REST:
+En LogiRed, cada **envío** se asigna al conductor que lo lleva: ms-envios guarda `conductor_id`
+y consulta a este servicio por REST.
 
 | Me consulta | Peticiones que me hace | Campos que no puedo cambiar sin avisar |
 |---|---|---|
-| ms-vehiculos | `GET /conductores/:id` (validar al crear y actualizar) · `GET /conductores?ids=…` (componer al consultar) | id, nombre, telefono |
+| ms-envios | `GET /conductores/:id` (validar al crear y actualizar un envío) · `GET /conductores?ids=…` (componer al listar envíos) | id, nombre, telefono |
+
+Cómo funciona la relación, vista desde ms-envios (quien guarda la referencia):
+
+- **Al escribir (validación):** cuando se crea o actualiza un envío con `conductor_id`, ms-envios llama
+  `GET /conductores/{conductor_id}` reenviando el token del usuario. Si este servicio responde 404 → el envío se
+  rechaza con **400**; si este servicio no responde → **503**.
+- **Al leer (composición):** al listar envíos, ms-envios junta todos los `conductor_id` y hace **una sola**
+  petición `GET /conductores?ids=1,3,8`. Cada envío sale con `conductor: { id, nombre, telefono }`. Si este
+  servicio está caído, el envío sale igual con `conductor: null` y un aviso (degradación controlada).
+
+Ejemplo de un envío compuesto (respuesta de ms-envios):
+
+```json
+{
+  "id": 7,
+  "numero_guia": "LR-…",
+  "cliente_id": 2,
+  "conductor_id": 1,
+  "conductor": { "id": 1, "nombre": "Carlos Ramírez", "telefono": "+573001234567" },
+  "estado": "en_transito"
+}
+```
+
+Lo que ofrece ms-conductores para la relación: `GET /conductores/:id` (200 o 404), el filtro por lotes
+`?ids=` y el registro de peticiones en la terminal (cada consulta que llega desde ms-envios queda impresa
+con su código y el rol del token reenviado).
 
 Ningún otro servicio lee la base `conductores_db`: los datos de los conductores solo se obtienen a través de esta API.
 
 ## Pruebas
 
-La colección de Postman está en `docs/ms-conductores.postman_collection.json` (Import → File).
-Trae los casos 1 a 18 del Taller 2 con la verificación del código esperado, en tres carpetas:
-
-1. **00 Preparación**: inicia sesión en ms-usuarios (puerto 3001) como administrador, crea una sola vez
-   un usuario de despacho y uno de flota, y guarda el token de cada uno. Requiere ms-usuarios corriendo
-   con la misma `JWT_SECRET`.
-2. **CRUD (1 a 13)**: se ejecutan con el token del administrador. El caso 07 guarda el id creado, que usan los casos 10, 12 y 13.
-3. **Seguridad (14 a 18)**: sin token (401), token inventado (401), despacho consulta (200),
-   despacho intenta crear (403) y flota crea (201).
-
-Se ejecuta todo en orden con *Run collection*. Las contraseñas de prueba están en las variables
-de la colección (`passwordAdmin`, `passwordPruebas`).
+- **Colección de Postman:** `docs/ms-conductores.postman_collection.json` (Import → File). Tres carpetas, en orden:
+  **0. Login** (saca los tokens en ms-usuarios, puerto 3001), **1. CRUD** (casos 1 a 13 con el token del administrador)
+  y **2. Seguridad** (casos 14 a 18: sin token, token falso, despacho consulta, despacho intenta crear, flota crea).
+- **Guía paso a paso:** `docs/GUIA-PRUEBAS.md`: cómo encender todo, usuarios de prueba, cada caso con su
+  resultado esperado y el archivo del código que lo produce.
 
 ## Archivos principales
 
 | Archivo | Capa | Su trabajo |
 |---|---|---|
+| src/app.js | Configuración | Registro de peticiones en la terminal, /health, montaje de rutas y manejo de errores |
 | src/routes/conductores.routes.js | Presentación: rutas | Qué función atiende cada método + URI y qué roles pueden usarla |
 | src/middlewares/auth.js | Seguridad | Verificar el token (401) y el rol (403) antes de llegar al controlador |
 | src/controllers/conductores.controller.js | Presentación: controlador | Leer id y filtros de la petición y armar la respuesta (código + JSON) |

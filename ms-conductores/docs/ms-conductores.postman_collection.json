@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "ms-conductores",
-    "description": "Casos de prueba del Taller 2 para ms-conductores · LogiRed (1 a 18). Ejecutar en orden con Run collection: la carpeta 00 obtiene los tokens (necesita ms-usuarios en el puerto 3001), el caso 07 guarda el id que usan el 10, 12 y 13.",
+    "name": "ms-conductores (LogiRed)",
+    "description": "Pruebas del Taller 2 para ms-conductores (casos 1 a 24). Orden: carpeta 0 (login), 1 (CRUD), 2 (seguridad) y 3 (relación con ms-envios). Necesita ms-usuarios (3001) y ms-conductores (3004); la carpeta 3 además ms-clientes (3002) y ms-envios (3003).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -9,18 +9,18 @@
     "bearer": [
       {
         "key": "token",
-        "value": "{{token}}",
+        "value": "{{tokenAdmin}}",
         "type": "string"
       }
     ]
   },
   "item": [
     {
-      "name": "00 Preparación (tokens)",
-      "description": "Requiere ms-usuarios corriendo en el puerto 3001 con la misma JWT_SECRET. Inicia sesión como administrador, crea (una sola vez; si ya existen responde 409) un usuario de despacho y uno de flota, e inicia sesión con cada uno.",
+      "name": "0. Login (sacar los tokens)",
+      "description": "Ejecutar primero. Necesita ms-usuarios corriendo en el puerto 3001 con la misma JWT_SECRET. Cada login guarda su token en una variable de la colección.",
       "item": [
         {
-          "name": "00a Login administrador",
+          "name": "0.1 Login administrador",
           "request": {
             "method": "POST",
             "header": [
@@ -39,6 +39,7 @@
                 "login"
               ]
             },
+            "description": "Inicia sesión en ms-usuarios (puerto 3001) y guarda el token en la variable tokenAdmin.",
             "auth": {
               "type": "noauth"
             },
@@ -59,116 +60,14 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Responde 200', () => pm.response.to.have.status(200));",
-                  "pm.collectionVariables.set('token', pm.response.json().token);"
+                  "pm.collectionVariables.set('tokenAdmin', pm.response.json().token);"
                 ]
               }
             }
           ]
         },
         {
-          "name": "00b Crear usuario despacho (201 o 409 si ya existe)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{usuariosUrl}}/usuarios",
-              "host": [
-                "{{usuariosUrl}}"
-              ],
-              "path": [
-                "usuarios"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Usuario Despacho\",\n  \"email\": \"despacho@empresa.com\",\n  \"password\": \"{{passwordPruebas}}\",\n  \"rol\": \"despacho\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Responde 201 o 409', () => pm.expect(pm.response.code).to.be.oneOf([201, 409]));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "00c Crear usuario flota (201 o 409 si ya existe)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{usuariosUrl}}/usuarios",
-              "host": [
-                "{{usuariosUrl}}"
-              ],
-              "path": [
-                "usuarios"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Usuario Flota\",\n  \"email\": \"flota@empresa.com\",\n  \"password\": \"{{passwordPruebas}}\",\n  \"rol\": \"flota\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Responde 201 o 409', () => pm.expect(pm.response.code).to.be.oneOf([201, 409]));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "00d Login despacho",
+          "name": "0.2 Login despacho",
           "request": {
             "method": "POST",
             "header": [
@@ -187,6 +86,7 @@
                 "login"
               ]
             },
+            "description": "Inicia sesión en ms-usuarios (puerto 3001) y guarda el token en la variable tokenDespacho.",
             "auth": {
               "type": "noauth"
             },
@@ -214,7 +114,7 @@
           ]
         },
         {
-          "name": "00e Login flota",
+          "name": "0.3 Login flota",
           "request": {
             "method": "POST",
             "header": [
@@ -233,6 +133,7 @@
                 "login"
               ]
             },
+            "description": "Inicia sesión en ms-usuarios (puerto 3001) y guarda el token en la variable tokenFlota.",
             "auth": {
               "type": "noauth"
             },
@@ -262,7 +163,8 @@
       ]
     },
     {
-      "name": "CRUD (casos 1 a 13, como administrador)",
+      "name": "1. CRUD (casos 1 a 13, como administrador)",
+      "description": "Todas usan el token del administrador (heredado de la colección).",
       "item": [
         {
           "name": "01 Listar todos",
@@ -465,7 +367,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"María Torres\",\n  \"cedula\": \"{{cedulaNueva}}\",\n  \"categoria_licencia\": \"C2\",\n  \"telefono\": \"+573001112233\",\n  \"sede\": \"Cali\"\n}",
+              "raw": "{\n  \"nombre\": \"Pedro Gil\",\n  \"cedula\": \"{{cedulaNueva}}\",\n  \"categoria_licencia\": \"C1\",\n  \"telefono\": \"3001234567\",\n  \"sede\": \"Cali\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -490,7 +392,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// Cédula nueva en cada ejecución para que la prueba se pueda repetir",
+                  "// Cédula nueva en cada ejecución para que se pueda repetir",
                   "pm.collectionVariables.set('cedulaNueva', String(Date.now()).slice(-10));"
                 ]
               }
@@ -518,7 +420,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"cedula\": \"1098765432\",\n  \"categoria_licencia\": \"C1\",\n  \"telefono\": \"+573005556677\",\n  \"sede\": \"Bogotá\"\n}",
+              "raw": "{\n  \"cedula\": \"1098765432\",\n  \"categoria_licencia\": \"C1\",\n  \"telefono\": \"3005556677\",\n  \"sede\": \"Bogotá\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -559,7 +461,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Cédula Repetida\",\n  \"cedula\": \"0012345678\",\n  \"categoria_licencia\": \"B1\",\n  \"telefono\": \"+573004445566\",\n  \"sede\": \"Medellín\"\n}",
+              "raw": "{\n  \"nombre\": \"Cédula Repetida\",\n  \"cedula\": \"0012345678\",\n  \"categoria_licencia\": \"B1\",\n  \"telefono\": \"3004445566\",\n  \"sede\": \"Medellín\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -601,7 +503,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"María Torres\",\n  \"cedula\": \"{{cedulaNueva}}\",\n  \"categoria_licencia\": \"C3\",\n  \"telefono\": \"+573001112233\",\n  \"sede\": \"Medellín\"\n}",
+              "raw": "{\n  \"nombre\": \"Pedro Gil\",\n  \"cedula\": \"{{cedulaNueva}}\",\n  \"categoria_licencia\": \"C3\",\n  \"telefono\": \"3001234567\",\n  \"sede\": \"Medellín\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -643,7 +545,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"María Torres\",\n  \"cedula\": \"{{cedulaNueva}}\",\n  \"categoria_licencia\": \"C2\",\n  \"telefono\": \"+573001112233\",\n  \"sede\": \"Cali\"\n}",
+              "raw": "{\n  \"nombre\": \"Pedro Gil\",\n  \"cedula\": \"1234567890\",\n  \"categoria_licencia\": \"C1\",\n  \"telefono\": \"3001234567\",\n  \"sede\": \"Cali\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -722,10 +624,11 @@
       ]
     },
     {
-      "name": "Seguridad (casos 14 a 18)",
+      "name": "2. Seguridad (casos 14 a 18)",
+      "description": "401 = no sé quién eres (sin token o token falso). 403 = sé quién eres pero tu rol no tiene permiso. Despacho solo consulta; administrador y flota gestionan conductores.",
       "item": [
         {
-          "name": "14 Petición sin token",
+          "name": "14 Sin token → 401",
           "request": {
             "method": "GET",
             "header": [],
@@ -755,7 +658,7 @@
           ]
         },
         {
-          "name": "15 Petición con un token inventado",
+          "name": "15 Token inventado → 401",
           "request": {
             "method": "GET",
             "header": [],
@@ -792,7 +695,7 @@
           ]
         },
         {
-          "name": "16 GET con el token de un rol que solo consulta (despacho)",
+          "name": "16 Despacho consulta → 200",
           "request": {
             "method": "GET",
             "header": [],
@@ -829,7 +732,7 @@
           ]
         },
         {
-          "name": "17 POST con el token de un rol sin permiso (despacho)",
+          "name": "17 Despacho intenta crear → 403",
           "request": {
             "method": "POST",
             "header": [
@@ -859,7 +762,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"María Torres\",\n  \"cedula\": \"{{cedulaNueva}}\",\n  \"categoria_licencia\": \"C2\",\n  \"telefono\": \"+573001112233\",\n  \"sede\": \"Cali\"\n}",
+              "raw": "{\n  \"nombre\": \"Pedro Gil\",\n  \"cedula\": \"{{cedulaNueva}}\",\n  \"categoria_licencia\": \"C1\",\n  \"telefono\": \"3001234567\",\n  \"sede\": \"Cali\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -889,7 +792,7 @@
           ]
         },
         {
-          "name": "18 POST con el token de un rol con permiso (flota)",
+          "name": "18 Flota crea → 201",
           "request": {
             "method": "POST",
             "header": [
@@ -919,7 +822,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"María Torres\",\n  \"cedula\": \"{{cedulaNueva}}\",\n  \"categoria_licencia\": \"C2\",\n  \"telefono\": \"+573001112233\",\n  \"sede\": \"Cali\"\n}",
+              "raw": "{\n  \"nombre\": \"Pedro Gil\",\n  \"cedula\": \"{{cedulaNueva}}\",\n  \"categoria_licencia\": \"C1\",\n  \"telefono\": \"3001234567\",\n  \"sede\": \"Cali\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -950,7 +853,7 @@
           ]
         },
         {
-          "name": "18b Limpieza: eliminar el conductor creado por flota",
+          "name": "18b Limpieza: flota elimina lo que creó → 204",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -988,6 +891,226 @@
           ]
         }
       ]
+    },
+    {
+      "name": "3. Relación con ms-envios (casos 19 a 24)",
+      "description": "Las peticiones van a ms-envios (puerto 3003), que guarda conductor_id y me consulta a mí. La evidencia de mi lado es MI terminal: ahí aparecen las peticiones GET /conductores/:id y GET /conductores?ids=. Necesita ms-usuarios, ms-clientes, ms-envios y ms-conductores corriendo. Los casos 23 y 24 se hacen con ms-conductores apagado.",
+      "item": [
+        {
+          "name": "19 Envío con conductor válido → 201",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{enviosUrl}}/envios",
+              "host": [
+                "{{enviosUrl}}"
+              ],
+              "path": [
+                "envios"
+              ]
+            },
+            "description": "En mi terminal: GET /conductores/1 → 200 (validación) y GET /conductores?ids=1 → 200 (composición).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": 1,\n  \"peso_kg\": 2.5,\n  \"ciudad_destino\": \"Cali\",\n  \"direccion_destino\": \"Cra 1 # 2-3\",\n  \"conductor_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Trae el conductor incluido', () => pm.expect(pm.response.json().conductor).to.have.property('nombre'));",
+                  "pm.collectionVariables.set('envioId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "20 Envío con conductor que no existe → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{enviosUrl}}/envios",
+              "host": [
+                "{{enviosUrl}}"
+              ],
+              "path": [
+                "envios"
+              ]
+            },
+            "description": "En mi terminal: GET /conductores/9999 → 404. ms-envios lo convierte en 400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": 1,\n  \"peso_kg\": 2.5,\n  \"ciudad_destino\": \"Cali\",\n  \"direccion_destino\": \"Cra 1 # 2-3\",\n  \"conductor_id\": 9999\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "21 Obtener envío con su conductor → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{enviosUrl}}/envios/{{envioId}}",
+              "host": [
+                "{{enviosUrl}}"
+              ],
+              "path": [
+                "envios",
+                "{{envioId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Trae el conductor incluido', () => pm.expect(pm.response.json().conductor).to.have.property('nombre'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "22 Listar envíos (UNA sola petición ?ids=) → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{enviosUrl}}/envios",
+              "host": [
+                "{{enviosUrl}}"
+              ],
+              "path": [
+                "envios"
+              ]
+            },
+            "description": "En mi terminal debe aparecer UNA sola línea GET /conductores?ids=… aunque haya varios envíos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "23 Listar con ms-conductores apagado → 200 + null",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{enviosUrl}}/envios",
+              "host": [
+                "{{enviosUrl}}"
+              ],
+              "path": [
+                "envios"
+              ]
+            },
+            "description": "ANTES de enviar: detener ms-conductores (Ctrl + C en su terminal). Después volver a encenderlo con npm run dev."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Conductor en null (degradación controlada)', () => pm.response.json().forEach((e) => pm.expect(e.conductor).to.eql(null)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "24 Crear con ms-conductores apagado → 503",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{enviosUrl}}/envios",
+              "host": [
+                "{{enviosUrl}}"
+              ],
+              "path": [
+                "envios"
+              ]
+            },
+            "description": "ANTES de enviar: detener ms-conductores (Ctrl + C en su terminal). Después volver a encenderlo con npm run dev.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": 1,\n  \"peso_kg\": 2.5,\n  \"ciudad_destino\": \"Cali\",\n  \"direccion_destino\": \"Cra 1 # 2-3\",\n  \"conductor_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 503', () => pm.response.to.have.status(503));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   "variable": [
@@ -1008,7 +1131,7 @@
       "value": "Pruebas2026*"
     },
     {
-      "key": "token",
+      "key": "tokenAdmin",
       "value": ""
     },
     {
@@ -1029,6 +1152,14 @@
     },
     {
       "key": "cedulaNueva",
+      "value": ""
+    },
+    {
+      "key": "enviosUrl",
+      "value": "http://127.0.0.1:3003"
+    },
+    {
+      "key": "envioId",
       "value": ""
     }
   ]
