@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Envíos · LogiRed</title>
+  <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body>
+  <header id="encabezado"></header>
+  <main class="contenedor">
+    <div class="titulo-seccion">
+      <div>
+        <h1>Envíos</h1>
+        <p class="tenue">Cada envío muestra su cliente (ms-clientes) y su conductor (ms-conductores).</p>
+      </div>
+      <button type="button" class="btn primario" id="btn-nuevo" hidden>+ Nuevo envío</button>
+    </div>
+
+    <div id="banner-aviso" class="caja-advertencia" hidden></div>
+
+    <form id="filtros" class="filtros">
+      <label>Estado
+        <select name="estado">
+          <option value="">Todos</option>
+          <option value="registrado">Registrado</option>
+          <option value="en_transito">En tránsito</option>
+          <option value="entregado">Entregado</option>
+        </select>
+      </label>
+      <label>Ciudad destino <input name="ciudad_destino" maxlength="100" placeholder="Ej: Bogotá"></label>
+      <label>Cliente <select name="cliente_id" class="lista-clientes"><option value="">Todos</option></select></label>
+      <label>Conductor <select name="conductor_id" class="lista-conductores"><option value="">Todos</option></select></label>
+      <button type="submit" class="btn">Filtrar</button>
+      <button type="reset" class="btn fantasma">Limpiar</button>
+    </form>
+
+    <div class="tabla-envoltura">
+      <table>
+        <thead>
+          <tr><th>Guía</th><th>Cliente</th><th>Destino</th><th>Peso</th><th>Conductor</th><th>Estado</th><th>Registrado</th><th class="col-acciones"></th></tr>
+        </thead>
+        <tbody id="filas"><tr><td colspan="8" class="vacio">Cargando…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+
+  <dialog id="dialogo">
+    <form id="formulario" novalidate>
+      <h2 id="titulo-dialogo">Nuevo envío</h2>
+      <div id="error-form" class="caja-error" hidden></div>
+      <div class="dos-columnas">
+        <label>Cliente
+          <select name="cliente_id" class="lista-clientes" required><option value="">Elige…</option></select>
+        </label>
+        <label>Conductor asignado
+          <select name="conductor_id" class="lista-conductores"><option value="">Sin asignar</option></select>
+        </label>
+      </div>
+      <div class="dos-columnas">
+        <label>Ciudad destino <input name="ciudad_destino" maxlength="100" required></label>
+        <label>Peso (kg) <input type="number" name="peso_kg" min="0.01" step="0.01" required></label>
+      </div>
+      <label>Dirección destino <input name="direccion_destino" maxlength="200" required></label>
+      <label>Estado
+        <select name="estado">
+          <option value="registrado">Registrado</option>
+          <option value="en_transito">En tránsito</option>
+          <option value="entregado">Entregado</option>
+        </select>
+      </label>
+      <div class="acciones-dialogo">
+        <button type="button" class="btn fantasma" id="btn-cancelar">Cancelar</button>
+        <button type="submit" class="btn primario" id="btn-guardar">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/js/ui.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/sesion.js"></script>
+  <script src="/js/envios.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+[Unit]
+Description=Microservicio conductores - LogiRed
+After=network.target
+
+[Service]
+User=nodeapps
+Group=nodeapps
+WorkingDirectory=/srv/logired/app/ms-conductores
+ExecStart=/usr/bin/node --env-file=.env src/index.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

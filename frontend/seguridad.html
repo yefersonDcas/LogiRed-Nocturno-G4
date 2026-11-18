@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi sesión y seguridad · LogiRed</title>
+  <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body>
+  <header id="encabezado"></header>
+  <main class="contenedor">
+    <div class="titulo-seccion">
+      <div>
+        <h1>Mi sesión y seguridad</h1>
+        <p class="tenue">Así te reconocen los microservicios: con un token JWT que te entregó ms-usuarios al iniciar sesión.</p>
+      </div>
+    </div>
+
+    <!-- 1. Resumen de la sesión -->
+    <section class="resumen-sesion">
+      <div class="dato"><span class="tenue">Usuario</span><strong id="r-nombre">…</strong></div>
+      <div class="dato"><span class="tenue">Rol dentro del token</span><strong id="r-rol">…</strong></div>
+      <div class="dato"><span class="tenue">Emitido</span><strong id="r-emitido">…</strong></div>
+      <div class="dato"><span class="tenue">Vence</span><strong id="r-vence">…</strong></div>
+      <div class="dato destacado"><span>Tiempo restante</span><strong id="r-restante">…</strong>
+        <div class="barra"><div id="r-barra"></div></div>
+      </div>
+    </section>
+
+    <!-- 2. El token por dentro -->
+    <section class="panel">
+      <div class="panel-titulo">
+        <h2>Tu token, parte por parte</h2>
+        <button type="button" class="btn chico" id="btn-copiar">Copiar token</button>
+      </div>
+      <p class="tenue">Un JWT tiene 3 partes separadas por puntos. Las dos primeras solo están <em>codificadas</em> (cualquiera las puede leer); la tercera es la <strong>firma</strong> que hace el servidor con <code>JWT_SECRET</code>. Si alguien cambia una sola letra de los datos, la firma deja de coincidir y el servicio responde <strong>401</strong>.</p>
+      <div class="token-crudo" id="token-crudo"></div>
+      <div class="token-partes">
+        <div class="token-parte p-cabecera">
+          <h3>1 · Cabecera</h3>
+          <p class="tenue">Algoritmo con el que se firmó.</p>
+          <pre id="t-cabecera"></pre>
+        </div>
+        <div class="token-parte p-datos">
+          <h3>2 · Datos (payload)</h3>
+          <p class="tenue">Quién eres y hasta cuándo vale. <strong>No lleva la contraseña.</strong></p>
+          <pre id="t-datos"></pre>
+        </div>
+        <div class="token-parte p-firma">
+          <h3>3 · Firma</h3>
+          <p class="tenue">No se puede "leer": el servidor la recalcula con su clave secreta y la compara.</p>
+          <pre id="t-firma"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Laboratorio -->
+    <section class="panel">
+      <div class="panel-titulo"><h2>Laboratorio: pon a prueba la seguridad</h2></div>
+      <p class="tenue">Cada botón hace una petición real al gateway <code>/api</code>. El navegador no decide nada: el microservicio revisa el token y responde.</p>
+      <div class="lab">
+        <button type="button" class="lab-caso" data-caso="ok">
+          <span class="lab-codigo c200">200</span>
+          <strong>Petición normal</strong>
+          <span class="tenue">GET /api/conductores con tu token.</span>
+        </button>
+        <button type="button" class="lab-caso" data-caso="sin">
+          <span class="lab-codigo c401">401</span>
+          <strong>Sin token</strong>
+          <span class="tenue">La misma petición, sin la cabecera Authorization.</span>
+        </button>
+        <button type="button" class="lab-caso" data-caso="falso">
+          <span class="lab-codigo c401">401</span>
+          <strong>Hacerme administrador</strong>
+          <span class="tenue">Cambio el rol dentro del token a "administrador" sin poder rehacer la firma.</span>
+        </button>
+        <button type="button" class="lab-caso" data-caso="prohibido">
+          <span class="lab-codigo c403">403</span>
+          <strong>Acción que mi rol no tiene</strong>
+          <span class="tenue" id="lab-prohibido-desc">…</span>
+        </button>
+      </div>
+      <div id="lab-resultado" class="lab-resultado" hidden></div>
+    </section>
+
+    <!-- 4. Permisos -->
+    <section class="panel">
+      <div class="panel-titulo"><h2>Permisos por rol</h2></div>
+      <p class="tenue">Las reglas viven en cada microservicio (<code>verificarToken</code> → 401, <code>requiereRol</code> → 403). El frontend solo las usa para esconder botones; tu fila está resaltada.</p>
+      <div class="tabla-envoltura">
+        <table class="tabla-permisos">
+          <thead><tr><th>Rol</th><th>Envíos</th><th>Clientes</th><th>Conductores</th></tr></thead>
+          <tbody id="tabla-permisos"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/ui.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/sesion.js"></script>
+  <script src="/js/seguridad.js"></script>
+</body>
+</html>

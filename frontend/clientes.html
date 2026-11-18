@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clientes · LogiRed</title>
+  <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body>
+  <header id="encabezado"></header>
+  <main class="contenedor">
+    <div class="titulo-seccion">
+      <div>
+        <h1>Clientes</h1>
+        <p class="tenue">Empresas que despachan paquetes con LogiRed.</p>
+      </div>
+      <button type="button" class="btn primario" id="btn-nuevo" hidden>+ Nuevo cliente</button>
+    </div>
+
+    <form id="filtros" class="filtros">
+      <label>Ciudad <input name="ciudad" maxlength="100" placeholder="Ej: Cali"></label>
+      <button type="submit" class="btn">Filtrar</button>
+      <button type="reset" class="btn fantasma">Limpiar</button>
+    </form>
+
+    <div class="tabla-envoltura">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Nombre</th><th>Documento</th><th>Teléfono</th><th>Correo</th><th>Ciudad</th><th class="col-acciones"></th></tr>
+        </thead>
+        <tbody id="filas"><tr><td colspan="7" class="vacio">Cargando…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+
+  <dialog id="dialogo">
+    <form id="formulario" novalidate>
+      <h2 id="titulo-dialogo">Nuevo cliente</h2>
+      <div id="error-form" class="caja-error" hidden></div>
+      <label>Nombre o razón social <input name="nombre" maxlength="150" required></label>
+      <div class="dos-columnas">
+        <label>Documento (NIT o cédula) <input name="documento" maxlength="30" required placeholder="900123456-7"></label>
+        <label>Teléfono <input name="telefono" maxlength="32" required placeholder="+576021234567"></label>
+      </div>
+      <div class="dos-columnas">
+        <label>Correo <input type="email" name="email" maxlength="254" required></label>
+        <label>Ciudad <input name="ciudad" maxlength="100" required></label>
+      </div>
+      <div class="acciones-dialogo">
+        <button type="button" class="btn fantasma" id="btn-cancelar">Cancelar</button>
+        <button type="submit" class="btn primario" id="btn-guardar">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/js/ui.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/sesion.js"></script>
+  <script src="/js/clientes.js"></script>
+</body>
+</html>
