@@ -36,9 +36,10 @@ Decisiones de seguridad:
 
 | Carpeta | Contenido |
 |---|---|
-| `apache/` | `app.conf` (puerto 80 → redirección) y `zz-app-ssl.conf` (443: frontend + gateway) |
+| `apache/` | `zz-app.conf` (puerto 80 → redirección) y `zz-app-ssl.conf` (443: frontend + gateway) |
 | `systemd/` | Unidades de los 4 microservicios |
 | `scripts/` | Scripts de despliegue en orden (se ejecutan dentro de cada VM con `sudo bash`) |
+| `bases-de-datos.sql` | Creación de las 4 bases y sus usuarios (con marcadores en vez de contraseñas) |
 | `secretos.ejemplo.txt` | Plantilla de claves. La copia real (`secretos.txt`) **nunca** va al repositorio |
 
 ## Orden de ejecución
@@ -57,6 +58,7 @@ Los scripts esperan estar en `/vagrant/taller3/`, que es la carpeta compartida d
 | 6b | servidor2 | `6b-servidor2-clientes-envios.sh` | ms-clientes y ms-envios como servicios |
 | 7 | servidor2 | `7-servidor2-frontend.sh` | Publica el frontend en `/var/www/app` |
 | 8 | servidor2 | `8-servidor2-https.sh` | Certificado, vhost 443, cabeceras y firewall 443 |
+| 9 | servidor2 | `9-servidor2-intranet-por-defecto.sh` | Renombra app.conf a zz-app.conf para que intranet siga siendo el sitio por defecto |
 
 Después del paso 8, en Windows se marca el certificado como confiable:
 

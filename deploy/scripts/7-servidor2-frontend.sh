@@ -20,9 +20,9 @@ find $DESTINO -type f -exec chmod 644 {} +
 ls -lR $DESTINO
 
 echo ">>> Verificación por el gateway"
-G="--resolve app.logiredtech.co:80:127.0.0.1"
+G="-k --resolve app.logiredtech.co:443:127.0.0.1"
 for ruta in / /login.html /admin.html /envios.html /css/estilos.css /js/api.js; do
-  curl -sS $G -o /dev/null -w "GET $ruta -> %{http_code} %{content_type}\n" http://app.logiredtech.co$ruta
+  curl -sS $G -o /dev/null -w "GET $ruta -> %{http_code} %{content_type}\n" https://app.logiredtech.co$ruta
 done
-curl -sS $G http://app.logiredtech.co/ | grep -o '<title>.*</title>'
-echo ">>> PASO 7 TERMINADO · abre http://app.logiredtech.co en el navegador"
+curl -sS $G https://app.logiredtech.co/ | grep -o '<title>.*</title>'
+echo ">>> PASO 7 TERMINADO · abre https://app.logiredtech.co en el navegador"

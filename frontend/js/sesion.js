@@ -17,12 +17,14 @@ const PERMISOS = {
   conductores: { ver: TODOS, crear: ['administrador', 'flota'], editar: ['administrador', 'flota'], eliminar: ['administrador', 'flota'] },
   clientes:    { ver: ['administrador', 'despacho'], crear: ['administrador', 'despacho'], editar: ['administrador', 'despacho'], eliminar: ['administrador'] },
   envios:      { ver: ['administrador', 'despacho'], crear: ['administrador', 'despacho'], editar: ['administrador', 'despacho'], eliminar: ['administrador'] },
+  usuarios:    { ver: ['administrador'], crear: ['administrador'], editar: ['administrador'], eliminar: ['administrador'] },
 };
 
 const MODULOS = [
   { clave: 'envios', nombre: 'Envíos', pagina: '/envios.html', descripcion: 'Guías, destino, estado y conductor asignado.' },
   { clave: 'clientes', nombre: 'Clientes', pagina: '/clientes.html', descripcion: 'Empresas que despachan paquetes con LogiRed.' },
   { clave: 'conductores', nombre: 'Conductores', pagina: '/conductores.html', descripcion: 'Flota de Cali, Medellín y Bogotá.' },
+  { clave: 'usuarios', nombre: 'Usuarios', pagina: '/usuarios.html', descripcion: 'Cuentas de acceso y su rol (ms-usuarios).' },
 ];
 
 const NOMBRE_ROL = { administrador: 'Administrador', despacho: 'Despacho', flota: 'Flota' };

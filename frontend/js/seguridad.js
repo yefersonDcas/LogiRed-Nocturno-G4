@@ -59,7 +59,7 @@ function pintarPermisos() {
   document.getElementById('tabla-permisos').innerHTML = Object.keys(NOMBRE_ROL).map((rol) => `
     <tr class="${rol === usuario.rol ? 'fila-actual' : ''}">
       <td><strong>${NOMBRE_ROL[rol]}</strong>${rol === usuario.rol ? ' <span class="insignia">tú</span>' : ''}</td>
-      <td>${marca('envios', rol)}</td><td>${marca('clientes', rol)}</td><td>${marca('conductores', rol)}</td>
+      <td>${marca('envios', rol)}</td><td>${marca('clientes', rol)}</td><td>${marca('conductores', rol)}</td><td>${marca('usuarios', rol)}</td>
     </tr>`).join('');
 }
 

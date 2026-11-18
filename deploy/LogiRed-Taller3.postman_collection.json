@@ -1,0 +1,1324 @@
+{
+  "info": {
+    "name": "LogiRed · Taller 3 (gateway HTTPS)",
+    "description": "Pruebas del Taller 3 contra el despliegue en las máquinas virtuales. Todas las peticiones pasan por el gateway Apache: https://app.logiredtech.co/api/<recurso>. Orden: 0 (login), 1 (CRUD), 2 (seguridad), 3 (relación con ms-envios), 4 (gateway).\n\nIMPORTANTE: el certificado es autofirmado. En Postman: Settings → General → apaga \"SSL certificate verification\", o en Settings → Certificates → CA Certificates carga app.logiredtech.co.crt.\n\nLas contraseñas NO vienen en la colección: llénalas en la pestaña Variables (passwordAdmin, passwordDespacho, passwordFlota).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{tokenAdmin}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "0. Login (sacar los tokens)",
+      "description": "Ejecutar primero. Necesita ms-usuarios corriendo en el puerto 3001 con la misma JWT_SECRET. Cada login guarda su token en una variable de la colección.",
+      "item": [
+        {
+          "name": "0.1 Login administrador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{usuariosUrl}}/usuarios/login",
+              "host": [
+                "{{usuariosUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "login"
+              ]
+            },
+            "description": "Inicia sesión en ms-usuarios (puerto 3001) y guarda el token en la variable tokenAdmin.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@empresa.com\",\n  \"password\": \"{{passwordAdmin}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('tokenAdmin', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "0.2 Login despacho",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{usuariosUrl}}/usuarios/login",
+              "host": [
+                "{{usuariosUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "login"
+              ]
+            },
+            "description": "Inicia sesión en ms-usuarios (puerto 3001) y guarda el token en la variable tokenDespacho.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"despacho@logiredtech.co\",\n  \"password\": \"{{passwordDespacho}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('tokenDespacho', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "0.3 Login flota",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{usuariosUrl}}/usuarios/login",
+              "host": [
+                "{{usuariosUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "login"
+              ]
+            },
+            "description": "Inicia sesión en ms-usuarios (puerto 3001) y guarda el token en la variable tokenFlota.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"flota@logiredtech.co\",\n  \"password\": \"{{passwordFlota}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('tokenFlota', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. CRUD (casos 1 a 13, como administrador)",
+      "description": "Todas usan el token del administrador (heredado de la colección).",
+      "item": [
+        {
+          "name": "01 Listar todos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conductores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Devuelve un arreglo', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 Filtrar por sede",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conductores?sede=Cali",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores"
+              ],
+              "query": [
+                {
+                  "key": "sede",
+                  "value": "Cali"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Todos son de Cali', () => pm.response.json().forEach((c) => pm.expect(c.sede).to.eql('Cali')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 Consultar por lotes (?ids=)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conductores?ids=1,3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores"
+              ],
+              "query": [
+                {
+                  "key": "ids",
+                  "value": "1,3"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Solo trae los ids pedidos', () => pm.response.json().forEach((c) => pm.expect([1, 3]).to.include(c.id)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 Obtener un registro existente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conductores/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores",
+                "1"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 Obtener un id que no existe",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conductores/9999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores",
+                "9999"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 Obtener con id no numérico",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conductores/abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores",
+                "abc"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 Crear con datos válidos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conductores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Pedro Gil\",\n  \"cedula\": \"{{cedulaNueva}}\",\n  \"categoria_licencia\": \"C1\",\n  \"telefono\": \"3001234567\",\n  \"sede\": \"Cali\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Trae cabecera Location', () => pm.response.to.have.header('Location'));",
+                  "pm.collectionVariables.set('nuevoId', pm.response.json().id);"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Cédula nueva en cada ejecución para que se pueda repetir",
+                  "pm.collectionVariables.set('cedulaNueva', String(Date.now()).slice(-10));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 Crear sin un atributo obligatorio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conductores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cedula\": \"1098765432\",\n  \"categoria_licencia\": \"C1\",\n  \"telefono\": \"3005556677\",\n  \"sede\": \"Bogotá\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09 Crear con cédula repetida (regla de negocio)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conductores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cédula Repetida\",\n  \"cedula\": \"0012345678\",\n  \"categoria_licencia\": \"B1\",\n  \"telefono\": \"3004445566\",\n  \"sede\": \"Medellín\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10 Actualizar un registro existente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conductores/{{nuevoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores",
+                "{{nuevoId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Pedro Gil\",\n  \"cedula\": \"{{cedulaNueva}}\",\n  \"categoria_licencia\": \"C3\",\n  \"telefono\": \"3001234567\",\n  \"sede\": \"Medellín\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "11 Actualizar un id que no existe",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conductores/9999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores",
+                "9999"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Pedro Gil\",\n  \"cedula\": \"1234567890\",\n  \"categoria_licencia\": \"C1\",\n  \"telefono\": \"3001234567\",\n  \"sede\": \"Cali\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "12 Eliminar un registro existente",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conductores/{{nuevoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores",
+                "{{nuevoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "13 Eliminar el mismo registro otra vez",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conductores/{{nuevoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores",
+                "{{nuevoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Seguridad (casos 14 a 18)",
+      "description": "401 = no sé quién eres (sin token o token falso). 403 = sé quién eres pero tu rol no tiene permiso. Despacho solo consulta; administrador y flota gestionan conductores.",
+      "item": [
+        {
+          "name": "14 Sin token → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conductores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "15 Token inventado → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conductores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwicm9sIjoiYWRtaW5pc3RyYWRvciJ9.firma-falsa",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "16 Despacho consulta → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conductores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenDespacho}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "17 Despacho intenta crear → 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conductores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenDespacho}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Pedro Gil\",\n  \"cedula\": \"{{cedulaNueva}}\",\n  \"categoria_licencia\": \"C1\",\n  \"telefono\": \"3001234567\",\n  \"sede\": \"Cali\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('cedulaNueva', String(Date.now()).slice(-10));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "18 Flota crea → 201",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conductores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenFlota}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Pedro Gil\",\n  \"cedula\": \"{{cedulaNueva}}\",\n  \"categoria_licencia\": \"C1\",\n  \"telefono\": \"3001234567\",\n  \"sede\": \"Cali\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('idFlota', pm.response.json().id);"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('cedulaNueva', String(Date.now()).slice(-10));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "18b Limpieza: flota elimina lo que creó → 204",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/conductores/{{idFlota}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conductores",
+                "{{idFlota}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenFlota}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Relación con ms-envios (casos 19 a 24)",
+      "description": "Las peticiones van a ms-envios (puerto 3003), que guarda conductor_id y me consulta a mí. La evidencia de mi lado es MI terminal: ahí aparecen las peticiones GET /conductores/:id y GET /conductores?ids=. Necesita ms-usuarios, ms-clientes, ms-envios y ms-conductores corriendo. Los casos 23 y 24 se hacen con ms-conductores apagado.",
+      "item": [
+        {
+          "name": "19 Envío con conductor válido → 201",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{enviosUrl}}/envios",
+              "host": [
+                "{{enviosUrl}}"
+              ],
+              "path": [
+                "envios"
+              ]
+            },
+            "description": "En mi terminal: GET /conductores/1 → 200 (validación) y GET /conductores?ids=1 → 200 (composición).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": 1,\n  \"peso_kg\": 2.5,\n  \"ciudad_destino\": \"Cali\",\n  \"direccion_destino\": \"Cra 1 # 2-3\",\n  \"conductor_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Trae el conductor incluido', () => pm.expect(pm.response.json().conductor).to.have.property('nombre'));",
+                  "pm.collectionVariables.set('envioId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "20 Envío con conductor que no existe → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{enviosUrl}}/envios",
+              "host": [
+                "{{enviosUrl}}"
+              ],
+              "path": [
+                "envios"
+              ]
+            },
+            "description": "En mi terminal: GET /conductores/9999 → 404. ms-envios lo convierte en 400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": 1,\n  \"peso_kg\": 2.5,\n  \"ciudad_destino\": \"Cali\",\n  \"direccion_destino\": \"Cra 1 # 2-3\",\n  \"conductor_id\": 9999\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "21 Obtener envío con su conductor → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{enviosUrl}}/envios/{{envioId}}",
+              "host": [
+                "{{enviosUrl}}"
+              ],
+              "path": [
+                "envios",
+                "{{envioId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Trae el conductor incluido', () => pm.expect(pm.response.json().conductor).to.have.property('nombre'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "22 Listar envíos (UNA sola petición ?ids=) → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{enviosUrl}}/envios",
+              "host": [
+                "{{enviosUrl}}"
+              ],
+              "path": [
+                "envios"
+              ]
+            },
+            "description": "En mi terminal debe aparecer UNA sola línea GET /conductores?ids=… aunque haya varios envíos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "23 Listar con ms-conductores apagado → 200 + null",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{enviosUrl}}/envios",
+              "host": [
+                "{{enviosUrl}}"
+              ],
+              "path": [
+                "envios"
+              ]
+            },
+            "description": "ANTES de enviar, en servidor2: sudo systemctl stop ms-conductores. Después: sudo systemctl start ms-conductores."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Conductor en null (degradación controlada)', () => pm.response.json().forEach((e) => pm.expect(e.conductor).to.eql(null)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "24 Crear con ms-conductores apagado → 503",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{enviosUrl}}/envios",
+              "host": [
+                "{{enviosUrl}}"
+              ],
+              "path": [
+                "envios"
+              ]
+            },
+            "description": "ANTES de enviar, en servidor2: sudo systemctl stop ms-conductores. Después: sudo systemctl start ms-conductores.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": 1,\n  \"peso_kg\": 2.5,\n  \"ciudad_destino\": \"Cali\",\n  \"direccion_destino\": \"Cra 1 # 2-3\",\n  \"conductor_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 503', () => pm.response.to.have.status(503));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Gateway y HTTPS (casos 25 a 30)",
+      "item": [
+        {
+          "name": "25 Frontend por HTTPS → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://app.logiredtech.co/"
+            },
+            "description": "El vhost 443 sirve login.html.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "26 HTTP redirige a HTTPS → 301",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://app.logiredtech.co/"
+            },
+            "description": "Postman no sigue la redirección en esta petición, así se ve el 301 y la cabecera Location.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 301', () => pm.response.to.have.status(301));",
+                  "pm.test('Manda a https', () => pm.expect(pm.response.headers.get('Location')).to.eql('https://app.logiredtech.co/'));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "27 Cabeceras de seguridad",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://app.logiredtech.co/login.html"
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('nosniff', () => pm.response.to.have.header('X-Content-Type-Options', 'nosniff'));",
+                  "pm.test('Sin iframes', () => pm.response.to.have.header('X-Frame-Options', 'DENY'));",
+                  "pm.test('Tiene CSP', () => pm.response.to.have.header('Content-Security-Policy'));",
+                  "pm.test('No delata el backend', () => pm.expect(pm.response.headers.has('X-Powered-By')).to.be.false);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "28 Gateway: clientes con token → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clientes"
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "29 Gateway: envíos con token → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/envios"
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "30 Ruta que no existe en el gateway → 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://app.logiredtech.co/api/inventado"
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://app.logiredtech.co/api"
+    },
+    {
+      "key": "usuariosUrl",
+      "value": "https://app.logiredtech.co/api"
+    },
+    {
+      "key": "passwordAdmin",
+      "value": ""
+    },
+    {
+      "key": "passwordDespacho",
+      "value": ""
+    },
+    {
+      "key": "passwordFlota",
+      "value": ""
+    },
+    {
+      "key": "tokenAdmin",
+      "value": ""
+    },
+    {
+      "key": "tokenDespacho",
+      "value": ""
+    },
+    {
+      "key": "tokenFlota",
+      "value": ""
+    },
+    {
+      "key": "nuevoId",
+      "value": ""
+    },
+    {
+      "key": "idFlota",
+      "value": ""
+    },
+    {
+      "key": "cedulaNueva",
+      "value": ""
+    },
+    {
+      "key": "enviosUrl",
+      "value": "https://app.logiredtech.co/api"
+    },
+    {
+      "key": "envioId",
+      "value": ""
+    }
+  ]
+}

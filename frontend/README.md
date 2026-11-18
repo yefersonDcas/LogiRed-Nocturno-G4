@@ -13,6 +13,7 @@ HTML, CSS y JavaScript sin librerías. Apache lo sirve en `https://app.logiredte
 | `envios.html` | administrador, despacho | CRUD de envíos. Muestra el cliente y el conductor que compone ms-envios, y los avisos si un servicio está caído |
 | `clientes.html` | administrador, despacho | CRUD de clientes con filtro por ciudad |
 | `conductores.html` | todos (solo administrador y flota escriben) | CRUD de conductores con filtros por sede y licencia |
+| `usuarios.html` | administrador | CRUD de cuentas de ms-usuarios con filtro por rol; la contraseña solo se envía si se escribe |
 | `seguridad.html` | todos | El token JWT por dentro y un laboratorio que provoca 200 / 401 / 403 reales |
 
 ## JavaScript
