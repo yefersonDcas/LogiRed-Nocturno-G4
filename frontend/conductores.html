@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Conductores · LogiRed</title>
+  <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body>
+  <header id="encabezado"></header>
+  <main class="contenedor">
+    <div class="titulo-seccion">
+      <div>
+        <h1>Conductores</h1>
+        <p class="tenue" id="subtitulo">Flota de las sedes Cali, Medellín y Bogotá.</p>
+      </div>
+      <button type="button" class="btn primario" id="btn-nuevo" hidden>+ Nuevo conductor</button>
+    </div>
+
+    <form id="filtros" class="filtros">
+      <label>Sede
+        <select name="sede">
+          <option value="">Todas</option>
+          <option>Cali</option><option>Medellín</option><option>Bogotá</option>
+        </select>
+      </label>
+      <label>Licencia
+        <select name="categoria_licencia">
+          <option value="">Todas</option>
+          <option>A1</option><option>A2</option><option>B1</option><option>B2</option>
+          <option>B3</option><option>C1</option><option>C2</option><option>C3</option>
+        </select>
+      </label>
+      <button type="submit" class="btn">Filtrar</button>
+      <button type="reset" class="btn fantasma">Limpiar</button>
+    </form>
+
+    <div class="tabla-envoltura">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Nombre</th><th>Cédula</th><th>Licencia</th><th>Teléfono</th><th>Sede</th><th class="col-acciones"></th></tr>
+        </thead>
+        <tbody id="filas"><tr><td colspan="7" class="vacio">Cargando…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+
+  <dialog id="dialogo">
+    <form id="formulario" novalidate>
+      <h2 id="titulo-dialogo">Nuevo conductor</h2>
+      <div id="error-form" class="caja-error" hidden></div>
+      <label>Nombre completo <input name="nombre" maxlength="150" required></label>
+      <div class="dos-columnas">
+        <label>Cédula <input name="cedula" maxlength="20" inputmode="numeric" required></label>
+        <label>Teléfono <input name="telefono" maxlength="32" required placeholder="+573001234567"></label>
+      </div>
+      <div class="dos-columnas">
+        <label>Categoría de licencia
+          <select name="categoria_licencia" required>
+            <option value="">Elige…</option>
+            <option>A1</option><option>A2</option><option>B1</option><option>B2</option>
+            <option>B3</option><option>C1</option><option>C2</option><option>C3</option>
+          </select>
+        </label>
+        <label>Sede
+          <select name="sede" required>
+            <option value="">Elige…</option>
+            <option>Cali</option><option>Medellín</option><option>Bogotá</option>
+          </select>
+        </label>
+      </div>
+      <div class="acciones-dialogo">
+        <button type="button" class="btn fantasma" id="btn-cancelar">Cancelar</button>
+        <button type="submit" class="btn primario" id="btn-guardar">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/js/ui.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/sesion.js"></script>
+  <script src="/js/conductores.js"></script>
+</body>
+</html>

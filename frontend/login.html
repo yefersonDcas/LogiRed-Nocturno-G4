@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Iniciar sesión · LogiRed</title>
+  <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body class="pagina-login">
+  <main class="login">
+    <section class="login-lado">
+      <div class="marca grande"><span class="marca-icono" aria-hidden="true">LR</span>LogiRed</div>
+      <h1>Paquetería nocturna entre Cali, Medellín y Bogotá</h1>
+      <p>Gestiona envíos, clientes y la flota de conductores desde un solo lugar.</p>
+    </section>
+
+    <section class="login-tarjeta">
+      <h2>Iniciar sesión</h2>
+      <p class="tenue">Usa la cuenta que te asignó el administrador.</p>
+
+      <div id="aviso-login" class="caja-error" hidden></div>
+
+      <form id="form-login" novalidate>
+        <label>Correo
+          <input type="email" name="email" autocomplete="username" required placeholder="usuario@logiredtech.co">
+        </label>
+        <label>Contraseña
+          <input type="password" name="password" autocomplete="current-password" required>
+        </label>
+        <button type="submit" class="btn primario ancho" id="btn-entrar">Entrar</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="/js/ui.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/sesion.js"></script>
+  <script src="/js/login.js"></script>
+</body>
+</html>

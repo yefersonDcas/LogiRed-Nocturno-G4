@@ -1,0 +1,4 @@
+secretos.txt
+*.key
+*.crt
+logs/

@@ -1,0 +1,867 @@
+{
+  "info": {
+    "name": "LogiRed · Taller 3 · CRUD clientes, envíos y usuarios",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "CRUD completo de ms-clientes, ms-envios y ms-usuarios por el gateway https://app.logiredtech.co/api. Primero corre \"0 Login\". SSL certificate verification apagado en Settings."
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{tokenAdmin}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://app.logiredtech.co/api"
+    },
+    {
+      "key": "passwordAdmin",
+      "value": ""
+    },
+    {
+      "key": "tokenAdmin",
+      "value": ""
+    },
+    {
+      "key": "docCliente",
+      "value": ""
+    },
+    {
+      "key": "idCliente",
+      "value": ""
+    },
+    {
+      "key": "idEnvio",
+      "value": ""
+    },
+    {
+      "key": "idUsuario",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "0 Login",
+      "item": [
+        {
+          "name": "Login administrador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuarios/login",
+            "description": "Escribe la contraseña del admin en la pestaña Variables (passwordAdmin) o directamente aquí en el Body.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@empresa.com\",\n  \"password\": \"{{passwordAdmin}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('tokenAdmin', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ms-clientes (CRUD)",
+      "item": [
+        {
+          "name": "C1 Listar clientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/clientes",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C2 Filtrar por ciudad",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/clientes?ciudad=Cali",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C3 Obtener cliente 1",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/clientes/1",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C4 Obtener cliente que no existe",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/clientes/9999",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C5 Crear cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/clientes",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Transportes del Pacífico\",\n  \"documento\": \"{{docCliente}}\",\n  \"telefono\": \"+576023334455\",\n  \"email\": \"contacto@pacifico.co\",\n  \"ciudad\": \"Buenaventura\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('docCliente', '9' + Date.now().toString().slice(-8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('idCliente', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C6 Crear con el mismo documento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/clientes",
+            "description": "Regla de negocio: documento único",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Transportes del Pacífico\",\n  \"documento\": \"{{docCliente}}\",\n  \"telefono\": \"+576023334455\",\n  \"email\": \"contacto@pacifico.co\",\n  \"ciudad\": \"Buenaventura\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C7 Crear sin datos obligatorios",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/clientes",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Sin datos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C8 Actualizar el cliente creado",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/clientes/{{idCliente}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Transportes del Pacífico\",\n  \"documento\": \"{{docCliente}}\",\n  \"telefono\": \"+576029998877\",\n  \"email\": \"contacto@pacifico.co\",\n  \"ciudad\": \"Buenaventura\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C9 Eliminar el cliente creado",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/clientes/{{idCliente}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C10 Eliminarlo otra vez",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/clientes/{{idCliente}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ms-envios (CRUD)",
+      "item": [
+        {
+          "name": "E1 Listar envíos (con cliente y conductor)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/envios",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E2 Filtrar por estado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/envios?estado=registrado",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E3 Filtrar por conductor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/envios?conductor_id=1",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E4 Obtener envío 1",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/envios/1",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E5 Obtener envío que no existe",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/envios/9999",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E6 Crear envío",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/envios",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": 1,\n  \"conductor_id\": 1,\n  \"peso_kg\": 4.2,\n  \"ciudad_destino\": \"Medellín\",\n  \"direccion_destino\": \"Cl 10 # 43-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('idEnvio', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E7 Crear con cliente que no existe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/envios",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": 9999,\n  \"conductor_id\": 1,\n  \"peso_kg\": 4.2,\n  \"ciudad_destino\": \"Medellín\",\n  \"direccion_destino\": \"Cl 10 # 43-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E8 Crear con conductor que no existe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/envios",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": 1,\n  \"conductor_id\": 9999,\n  \"peso_kg\": 4.2,\n  \"ciudad_destino\": \"Medellín\",\n  \"direccion_destino\": \"Cl 10 # 43-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E9 Crear con peso inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/envios",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": 1,\n  \"conductor_id\": 1,\n  \"peso_kg\": -3,\n  \"ciudad_destino\": \"Medellín\",\n  \"direccion_destino\": \"Cl 10 # 43-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E10 Actualizar: pasar a en tránsito",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/envios/{{idEnvio}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": 1,\n  \"conductor_id\": 1,\n  \"peso_kg\": 4.2,\n  \"ciudad_destino\": \"Medellín\",\n  \"direccion_destino\": \"Cl 10 # 43-20\",\n  \"estado\": \"en_transito\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E11 Eliminar el envío creado",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/envios/{{idEnvio}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E12 Eliminarlo otra vez",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/envios/{{idEnvio}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ms-usuarios (CRUD)",
+      "item": [
+        {
+          "name": "U1 Listar usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/usuarios",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "U2 Filtrar por rol",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/usuarios?rol=despacho",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "U3 Obtener usuario 1",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/usuarios/1",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "U4 Crear usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuarios",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Usuario de prueba\",\n  \"email\": \"prueba@logiredtech.co\",\n  \"rol\": \"despacho\",\n  \"password\": \"Prueba2026Segura\",\n  \"activo\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('idUsuario', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "U5 Crear con el mismo correo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuarios",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Usuario de prueba\",\n  \"email\": \"prueba@logiredtech.co\",\n  \"rol\": \"despacho\",\n  \"password\": \"Prueba2026Segura\",\n  \"activo\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "U6 Actualizar usuario creado",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/usuarios/{{idUsuario}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Usuario de prueba editado\",\n  \"email\": \"prueba@logiredtech.co\",\n  \"rol\": \"despacho\",\n  \"activo\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "U7 Eliminar usuario creado",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/usuarios/{{idUsuario}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
