@@ -1120,9 +1120,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": {
-              "raw": "https://app.logiredtech.co/"
-            },
+            "url": "https://app.logiredtech.co/",
             "description": "El vhost 443 sirve login.html.",
             "auth": {
               "type": "noauth"
@@ -1145,9 +1143,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": {
-              "raw": "http://app.logiredtech.co/"
-            },
+            "url": "http://app.logiredtech.co/",
             "description": "Postman no sigue la redirección en esta petición, así se ve el 301 y la cabecera Location.",
             "auth": {
               "type": "noauth"
@@ -1174,9 +1170,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": {
-              "raw": "https://app.logiredtech.co/login.html"
-            },
+            "url": "https://app.logiredtech.co/login.html",
             "description": "",
             "auth": {
               "type": "noauth"
@@ -1203,9 +1197,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/clientes"
-            },
+            "url": "{{baseUrl}}/clientes",
             "description": ""
           },
           "event": [
@@ -1225,9 +1217,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/envios"
-            },
+            "url": "{{baseUrl}}/envios",
             "description": ""
           },
           "event": [
@@ -1247,9 +1237,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": {
-              "raw": "https://app.logiredtech.co/api/inventado"
-            },
+            "url": "https://app.logiredtech.co/api/inventado",
             "description": ""
           },
           "event": [
@@ -1259,6 +1247,159 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Responde 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Envíos (para mostrar la relación en vivo)",
+      "item": [
+        {
+          "name": "E1 Listar envíos (con su cliente y su conductor)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/envios",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E2 Filtrar por estado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/envios?estado=registrado",
+            "description": "Estados: registrado, en_transito, entregado"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E3 Envíos de un conductor (relación)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/envios?conductor_id=1",
+            "description": "Cambia el 1 por el id del conductor"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E4 Obtener un envío",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/envios/1",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E5 Pasar el envío 1 a en tránsito",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/envios/1",
+            "description": "PUT reemplaza el envío completo: van todos los campos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": 1,\n  \"conductor_id\": 1,\n  \"peso_kg\": 3.5,\n  \"ciudad_destino\": \"Cali\",\n  \"direccion_destino\": \"Cra 5 # 10-20\",\n  \"estado\": \"en_transito\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "E6 Crear envío sin conductor (sin asignar)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/envios",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cliente_id\": 1,\n  \"conductor_id\": null,\n  \"peso_kg\": 2,\n  \"ciudad_destino\": \"Bogotá\",\n  \"direccion_destino\": \"Cl 80 # 20-10\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));"
                 ]
               }
             }
